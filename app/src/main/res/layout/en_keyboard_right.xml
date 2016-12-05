@@ -1,7 +1,7 @@
-<fatty.circularime.circularIME_view
+<fatty.circularime.en_circularIME_view_right
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/keyboard"
     android:layout_alignParentBottom="true"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/en_left_circular_5x3_ime_background_en_lowercase" />
+    android:background="@drawable/en_right_circular_5x3_ime_background_en_lowercase" />
