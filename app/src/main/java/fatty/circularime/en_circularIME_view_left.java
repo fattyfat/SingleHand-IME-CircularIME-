@@ -6,10 +6,7 @@ import android.graphics.PointF;
  * Created by Fatty on 2016-12-02.
  */
 
-public class en_circularIME_view_left {
-
-    fatty.circularime.circularIME circularIME;
-    fatty.circularime.circularIME_view circularIME_view;
+public class en_circularIME_view_left{
 
     private PointF posCircleCenter;                                                // Left circularIME's center point of touch
     private float firstCircleRadius, secendCircleRadius, thirdCircleRadius,

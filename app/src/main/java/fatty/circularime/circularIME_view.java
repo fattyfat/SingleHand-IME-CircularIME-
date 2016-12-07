@@ -36,6 +36,10 @@ public class circularIME_view extends View {
 
     fatty.circularime.circularIME circularIME;
     fatty.circularime.en_circularIME_view_left en_circularIME_view_left = new fatty.circularime.en_circularIME_view_left();
+    fatty.circularime.en_circularIME_view_right en_circularIME_view_right = new fatty.circularime.en_circularIME_view_right();
+
+    private int         IMEclassNumber = 0;         // 0 = en_circularIME_left ; 1 = en_circularIME_right
+    private int         screenWidth,screenHeight,view_width,view_height;
 
     private PointF      posTouchDown = null;        // Current point of touch
     private boolean     flag_uppercase = false;     // true = uppercase ; false = lowercase
@@ -44,29 +48,31 @@ public class circularIME_view extends View {
     private final long  longPressTime = 500;        // 超過500ms判斷為長按
     private final long  longPressSpacingTime = 75;  // 判斷為長按之後，每隔75ms執行一次長按事件
     private long        preClickTime = 0;           // 當前按鍵的時間
-    private int         sameButtonClickCount = 0;   // 統計連續點擊同按鈕次數的counter (間格在一個clickSpacingTime內判斷為連擊)
+    private int         sameButtonClickCount = 0;   // 統計連續點擊同按鈕次數的counter (間隔在一個clickSpacingTime內判斷為連擊)
     private String	    outputString = "";          // output string
     private String	    lastTimeOutputString;	    // last time output string
 
     private Handler mBaseHandler = new Handler();
-    private LongPressedThread mLongPressedThread;           //長按線程；進入長按線程將會不斷output最近印出的字
-    private ClickPressedThread mPrevClickThread;            //點擊等待線程；進入點擊線程
+    private LongPressedThread mLongPressedThread;   //長按線程；進入長按線程將會不斷output最近印出的字
+    private ClickPressedThread mPrevClickThread;    //點擊等待線程；進入點擊線程
 
     public circularIME_view(Context context, AttributeSet attrs) {super(context,attrs); }
+
+    public void setIME(fatty.circularime.circularIME _circularIME) {circularIME = _circularIME; }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec){  //繪製初始畫面
 
-        int screenWidth = View.MeasureSpec.getSize(widthMeasureSpec);
-        int screenHeight = View.MeasureSpec.getSize(heightMeasureSpec);
+        screenWidth = View.MeasureSpec.getSize(widthMeasureSpec);
+        screenHeight = View.MeasureSpec.getSize(heightMeasureSpec);
 
-        int view_width = screenWidth;
-        int view_height = screenHeight;
+        view_width = screenWidth;
+        view_height = screenHeight;
 
         if(getResources().getConfiguration().orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE){ //判斷是否為橫屏
             //todo 轉為雙手模式 下面參數只是暫時設定，屆時實作要改掉
-            view_width = Math.round(0.5f * view_width);
-            view_height = Math.round(0.75f * view_width);
+            view_width = Math.round(0.5f * view_width);//todo
+            view_height = Math.round(0.75f * view_width);//todo
         }
         else{  // Circular mode
             view_height = Math.round(0.75f * view_width);                 // 保持長寬比 4：3。原始像素800x600
@@ -87,13 +93,15 @@ public class circularIME_view extends View {
                 // Get touch point
                 posTouchDown = new PointF(e.getX(), e.getY());
 
-                String returnString = en_circularIME_view_left.ACTION_DOWN_EVENT(posTouchDown);
+                String returnString = "";
+                returnString = IMEclassSwitch();
+
                 switch(returnString) {
                     case "#1":     //do nothing(在外圈無用地帶)
                         break;
 
                     case "#2":     //切換左右雙手輸入法
-                        circularIME.outputText("KKKKK");    //todo: 切換左右雙手輸入法
+                        IMEkeyboardBackgroundSwitch();
                         break;
 
                     case "#3":     //切換英中日輸入法
@@ -105,6 +113,7 @@ public class circularIME_view extends View {
                         outputString = returnString;
 
                         if (!outputString.equals("")) printOutputString(outputString);
+                        lastTimeOutputString = outputString;
 
                         //加入長按事件thread
                         mLongPressedThread = new LongPressedThread();
@@ -126,7 +135,6 @@ public class circularIME_view extends View {
                     sameButtonClickCount++;
                 }
 
-                lastTimeOutputString = outputString;
                 longPressEvent = false;
                 posTouchDown = null;
 
@@ -200,17 +208,63 @@ public class circularIME_view extends View {
     }
 
     /** 英文大小寫背景圖變換設定 */
-    public void handleBackground()
-    {   //todo 加入右手輸入法之後，這裡要改
-        if(flag_uppercase)
-        {
-            findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_circular_5x3_ime_background_en_uppercase);
-        }
-        else
-        {
-            findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_circular_5x3_ime_background_en_lowercase);
+    private void handleBackground()
+    {
+        switch(IMEclassNumber % 2) {
+            case 0:     //左手鍵盤
+
+                if(flag_uppercase)
+                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_circular_5x3_ime_background_en_uppercase);
+                else
+                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_circular_5x3_ime_background_en_lowercase);
+                break;
+
+            case 1:     //右手鍵盤
+
+                if(flag_uppercase)
+                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_circular_5x3_ime_background_en_uppercase);
+                else
+                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_circular_5x3_ime_background_en_lowercase);
+                break;
         }
     }
 
-    public void setIME(fatty.circularime.circularIME _circularIME) {circularIME = _circularIME; }
+    private String IMEclassSwitch()
+    {
+        switch(IMEclassNumber % 2) {
+            case 0:     //左手鍵盤回傳點擊結果
+                return en_circularIME_view_left.ACTION_DOWN_EVENT(posTouchDown);
+
+            case 1:     //右手鍵盤回傳點擊結果
+                return en_circularIME_view_right.ACTION_DOWN_EVENT(posTouchDown);
+
+            default:
+                return "";
+        }
+    }
+
+    private void IMEkeyboardBackgroundSwitch()
+    {
+        IMEclassNumber++;
+
+        switch(IMEclassNumber % 2) {
+            case 0:     //變更為左手鍵盤的背景及設定
+
+                en_circularIME_view_left.setCircularRadius_enLeft(screenWidth,screenHeight,view_width,view_height);
+                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_circular_5x3_ime_background_en_lowercase);
+                flag_uppercase = false;
+                break;
+
+            case 1:     //變更為右手鍵盤的背景及設定
+
+                en_circularIME_view_right.setCircularRadius_enRight(screenWidth,screenHeight,view_width,view_height);
+                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_circular_5x3_ime_background_en_lowercase);
+                flag_uppercase = false;
+                break;
+
+            default:
+                break;
+        }
+    }
+
 }
