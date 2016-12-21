@@ -36,6 +36,6 @@ public class circularIME extends InputMethodService {
 
     public void delOneText()
     {
-        getCurrentInputConnection().deleteSurroundingText(1,1);
+        getCurrentInputConnection().deleteSurroundingText(1,0);
     }
 }

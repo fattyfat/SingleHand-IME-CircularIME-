@@ -1,23 +1,7 @@
 <fatty.circularime.circularIME_view
         xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:ads="http://schemas.android.com/apk/res-auto"
         android:id="@+id/keyboard"
         android:layout_alignParentBottom="true"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/en_left_normal_circular_5x3_ime_background_en_lowercase" >
-
-    <com.google.android.gms.ads.AdView
-        android:id="@+id/adView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
-        ads:adSize="BANNER"
-        ads:adUnitId="@string/banner_ad_unit_id">
-    </com.google.android.gms.ads.AdView>
-
-
-    </fatty.circularime.circularIME_view>
-
-
+        android:background="@drawable/en_left_normal_circular_5x3_ime_background_en_lowercase" />

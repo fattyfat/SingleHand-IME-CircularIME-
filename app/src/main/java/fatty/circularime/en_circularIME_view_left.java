@@ -92,7 +92,7 @@ public class en_circularIME_view_left{
     }   /**設定鍵盤座標資訊*/
 
     public String ACTION_DOWN_EVENT(PointF posTouchDown){
-    /**return #1:do nothing(在外圈無用地帶) #2:切換左右雙手輸入法 #3:切換英中日輸入法 other:output String*/
+    /**return #1:do nothing(在外圈無用地帶) #2:切換左右雙手輸入法 #3:切換英中日輸入法 other:output String #4:廣告*/
         double touchRadius = getRadius(posTouchDown);
         double touchAngle = getAngle(posTouchDown);
 
@@ -101,8 +101,11 @@ public class en_circularIME_view_left{
             int radiusMultiple = (int) ((float) touchRadius / firstCircleRadius);
             int angleMultiple = (int) (touchAngle / amountRow);
 
-            if (radiusMultiple == 4 && (1 <= angleMultiple && angleMultiple <= 7))
+            if (radiusMultiple == 4 && angleMultiple <= 7)
                 return "#2";
+
+            if (radiusMultiple == 5 && (32 <= angleMultiple && angleMultiple <= 38))
+                return "#4";
 
             return "#1";
         }

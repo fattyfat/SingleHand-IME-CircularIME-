@@ -1,6 +1,11 @@
 package fatty.circularime;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.PointF;
 import android.os.Handler;
 import android.util.AttributeSet;
@@ -14,10 +19,10 @@ import java.util.Calendar;
  * Created by Fatty on 2016-11-29.
  */
 //============最急件→製作中
-//todo{13 14}   加入廣告(另外弄一個廣告class可能比較好做?)
+//todo{19~24}   調整介面+素材
 //============待完成
-//todo{15~24}   調整介面+素材
-//todo 小熊的家
+//todo 廣告業面多出一個[X]
+//todo 改變icon
 
 //todo 加入中英日切換的按鈕
 //todo 加入中文輸入法
@@ -29,7 +34,6 @@ import java.util.Calendar;
 //todo [考慮]收起鍵盤的按鈕
 //todo [考慮]加聲音或震動  (查SEE程式的playclick)
 //todo [考慮]加入輸入法頁面的一些選項(給我們評分 震動勾選 聲音勾選 語言 一鍵備份等)
-//todo [考慮]換ime圖片用覆蓋的(用按鈕?)
 //todo [考慮]像扇子一樣的收放動作
 
 //todo [追蹤]有長按事件thread 停不下來的問題 (觸發條件不明)
@@ -43,6 +47,7 @@ public class circularIME_view extends View {
 
     private int         IMEclassNumber = 0;         // 0 = en_circularIME_left ; 1 = en_circularIME_view_twoHands ;
                                                     // 2 = en_circularIME_right
+    private boolean     isHorizontal = false;       // true = Horizontal ; false = vertical
     private int         screenWidth,screenHeight,view_width,view_height;
 
     private PointF      posTouchDown = null;        // Current point of touch
@@ -60,7 +65,22 @@ public class circularIME_view extends View {
     private LongPressedThread mLongPressedThread;   //長按線程；進入長按線程將會不斷output最近印出的字
     private ClickPressedThread mPrevClickThread;    //點擊等待線程；進入點擊線程
 
-    public circularIME_view(Context context, AttributeSet attrs) {super(context,attrs); }
+    private Context mContext;
+
+    private Bitmap adClickIcon, switchIcon;
+    private Paint paint;
+
+    public circularIME_view(Context context, AttributeSet attrs) {
+
+        super(context,attrs);
+        mContext = context;
+
+        //创建一个画笔
+        paint = new Paint();
+        //获得图片资源
+        switchIcon = BitmapFactory.decodeResource(getResources(), R.drawable.gu_bear);
+        adClickIcon = BitmapFactory.decodeResource(getResources(), R.drawable.gu_so_cute);
+    }
 
     public void setIME(fatty.circularime.circularIME _circularIME) {circularIME = _circularIME; }
 
@@ -75,13 +95,15 @@ public class circularIME_view extends View {
 
         if(getResources().getConfiguration().orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE){ //判斷是否為橫屏
 
+            isHorizontal = true;
             view_height = Math.round(0.25f * view_width);
             en_circularIME_view_twoHands.setCircularRadius_enTwoHand(screenWidth,screenHeight,view_width,view_height,true);
-            findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_normal_5x3_ime_background_lowercase);
+            findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_horizontal_5x3_ime_background_lowercase);
             flag_uppercase = false;
             IMEclassNumber = 1;
         }
         else{  // Circular mode
+            isHorizontal = false;
             view_height = Math.round(0.75f * view_width);                 // 保持長寬比 4：3。原始像素800x600
             en_circularIME_view_left.setCircularRadius_enLeft(screenWidth,screenHeight,view_width,view_height);
         }
@@ -113,6 +135,16 @@ public class circularIME_view extends View {
 
                     case "#3":     //切換英中日輸入法
                         // TODO: 之後要加入中英日切換的地方
+                        break;
+
+                    case "#4":     //切換廣告
+                        Intent intent = new Intent();
+                        intent.setClass(getContext(), littleBear.class);    //设置成要启动的Activity
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+
+                        mContext.startActivity(intent);
+
                         break;
 
                     default:        //output string
@@ -153,6 +185,31 @@ public class circularIME_view extends View {
         return true;
     }   /**偵測碰觸事件(action down & action up)*/
 
+    protected void onDraw ( Canvas canvas ) {
+
+        super.onDraw(canvas);
+
+        if (!isHorizontal) {    //橫版的話不印廣告與切換鍵盤的符號
+
+            switch (IMEclassNumber % 3) {
+                case 0:     //變更為左手鍵盤廣告圖案位置
+                    canvas.drawBitmap(switchIcon, screenWidth - 200, screenHeight - 150, paint);
+                    canvas.drawBitmap(adClickIcon, screenWidth - 150, 0, paint);
+                    break;
+                case 1:     //變更為雙手鍵盤廣告圖案位置
+                    canvas.drawBitmap(switchIcon, screenWidth - 200, screenHeight - 150, paint);
+                    canvas.drawBitmap(adClickIcon, 0, screenHeight - 150, paint);
+                    break;
+                case 2:     //變更為右手鍵盤廣告圖案位置
+                    canvas.drawBitmap(switchIcon, 0, screenHeight - 150, paint);
+                    canvas.drawBitmap(adClickIcon, 0, 0, paint);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     private class LongPressedThread implements Runnable{
 
         @Override
@@ -181,11 +238,11 @@ public class circularIME_view extends View {
 
         if (outputString_.length() == 3 || outputString_.length() == 4) {   //九宮格鍵盤，字元輸出鍵盤有3或4個字
 
-            if (longPressEvent) {
-                ;   //長按事件 do nothing  直接跳到下面印出字元
-            }else if (outputString.equals(lastTimeOutputString) && (Calendar.getInstance().getTimeInMillis() - preClickTime <= clickSpacingTime))
-                circularIME.delOneText();   //若文字鍵與上一次按鍵是同一顆，且時間差距小於0.3秒，則做一次刪除動作(因為九宮格要切換字元)
-            else sameButtonClickCount = 0;  //代表這次按鍵與上次不同顆或者連擊次數中斷，所以歸零
+            if (!longPressEvent) {
+                if (outputString.equals(lastTimeOutputString) && (Calendar.getInstance().getTimeInMillis() - preClickTime <= clickSpacingTime)){
+                    circularIME.delOneText();   //若文字鍵與上一次按鍵是同一顆，且時間差距小於0.3秒，則做一次刪除動作(因為九宮格要切換字元)
+                }else sameButtonClickCount = 0;  //代表這次按鍵與上次不同顆或者連擊次數中斷，所以歸零
+            }
 
      /*大寫*/if(flag_uppercase) circularIME.outputText("" + Character.toUpperCase(outputString_.charAt(sameButtonClickCount %outputString_.length())));
      /*小寫*/else circularIME.outputText("" + outputString_.charAt(sameButtonClickCount %outputString_.length()));
@@ -246,6 +303,7 @@ public class circularIME_view extends View {
                         en_circularIME_view_left.setCircularRadius_enLeft(screenWidth, screenHeight, view_width, view_height);
                         findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_normal_circular_5x3_ime_background_en_lowercase);
                         flag_uppercase = false;
+                        this.invalidate();
                         break;
 
                     case 1:     //變更為雙手鍵盤的背景及設定
@@ -253,6 +311,7 @@ public class circularIME_view extends View {
                         en_circularIME_view_twoHands.setCircularRadius_enTwoHand(screenWidth, screenHeight, view_width, view_height, false);
                         findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_normal_5x3_ime_background_lowercase);
                         flag_uppercase = false;
+                        this.invalidate();
                         break;
 
                     case 2:     //變更為右手鍵盤的背景及設定
@@ -260,6 +319,7 @@ public class circularIME_view extends View {
                         en_circularIME_view_right.setCircularRadius_enRight(screenWidth, screenHeight, view_width, view_height);
                         findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_normal_circular_5x3_ime_background_en_lowercase);
                         flag_uppercase = false;
+                        this.invalidate();
                         break;
 
                     default:
@@ -269,108 +329,142 @@ public class circularIME_view extends View {
 
             case "upperLowerCaseSwitch": /** 英文大寫←→英文小寫 背景圖更換 */
 
-                switch(IMEclassNumber % 3) {
-                    case 0:     //左手鍵盤
+                if (isHorizontal) {
 
-                        if(flag_uppercase)
-                            findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_normal_circular_5x3_ime_background_en_uppercase);
-                        else
-                            findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_normal_circular_5x3_ime_background_en_lowercase);
-                        break;
+                    if (flag_uppercase)
+                        findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_horizontal_5x3_ime_background_uppercase);
+                    else
+                        findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_horizontal_5x3_ime_background_lowercase);
+                    break;
 
-                    case 1:     //雙手鍵盤
+                }else {
+                    switch (IMEclassNumber % 3) {
+                        case 0:     //左手鍵盤
 
-                        if(flag_uppercase)
-                            findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_normal_5x3_ime_background_uppercase);
-                        else
-                            findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_normal_5x3_ime_background_lowercase);
-                        break;
+                            if (flag_uppercase)
+                                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_normal_circular_5x3_ime_background_en_uppercase);
+                            else
+                                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_normal_circular_5x3_ime_background_en_lowercase);
+                            break;
 
-                    case 2:     //右手鍵盤
+                        case 1:     //雙手鍵盤
 
-                        if(flag_uppercase)
-                            findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_normal_circular_5x3_ime_background_en_uppercase);
-                        else
-                            findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_normal_circular_5x3_ime_background_en_lowercase);
-                        break;
+                            if (flag_uppercase)
+                                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_normal_5x3_ime_background_uppercase);
+                            else
+                                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_normal_5x3_ime_background_lowercase);
+                            break;
+
+                        case 2:     //右手鍵盤
+
+                            if (flag_uppercase)
+                                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_normal_circular_5x3_ime_background_en_uppercase);
+                            else
+                                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_normal_circular_5x3_ime_background_en_lowercase);
+                            break;
+                    }
                 }
                 break;
 
             case "numeralSymbolSwitch": /** 數字鍵盤←→標點符號鍵盤 背景圖更換 */
 
-                switch(IMEclassNumber %3){
+                if (isHorizontal) {
 
-                    case 0://左手鍵盤
-                        switch (en_circularIME_view_left.switchKeyboardArray()){
+                    switch (en_circularIME_view_twoHands.switchKeyboardArray()) {
 
-                            case 0:
-                                if(flag_uppercase)
-                                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_normal_circular_5x3_ime_background_en_uppercase);
-                                else
-                                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_normal_circular_5x3_ime_background_en_lowercase);
-                                break;
+                        case 0:
+                            if (flag_uppercase)
+                                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_horizontal_5x3_ime_background_uppercase);
+                            else
+                                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_horizontal_5x3_ime_background_lowercase);
+                            break;
 
-                            case 1:
-                                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_numeral_circular_5x3_ime_background);
-                                break;
+                        case 1:
+                            findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_horizontal_numeral_5x3_ime_background);
+                            break;
 
-                            case 2:
-                                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_symbol_circular_5x3_ime_background);
-                                break;
+                        case 2:
+                            findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_horizontal_symbol_5x3_ime_background);
+                            break;
 
-                            default:
-                                break;
-                        }
+                        default:
+                            break;
+                    }
+                }else {
+                    switch (IMEclassNumber % 3) {
 
-                        break;
+                        case 0://左手鍵盤
+                            switch (en_circularIME_view_left.switchKeyboardArray()) {
 
-                    case 1://右手鍵盤
+                                case 0:
+                                    if (flag_uppercase)
+                                        findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_normal_circular_5x3_ime_background_en_uppercase);
+                                    else
+                                        findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_normal_circular_5x3_ime_background_en_lowercase);
+                                    break;
 
-                        switch (en_circularIME_view_twoHands.switchKeyboardArray()){
+                                case 1:
+                                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_numeral_circular_5x3_ime_background);
+                                    break;
 
-                            case 0:
-                                if(flag_uppercase)
-                                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_normal_5x3_ime_background_uppercase);
-                                else
-                                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_normal_5x3_ime_background_lowercase);
-                                break;
+                                case 2:
+                                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_left_symbol_circular_5x3_ime_background);
+                                    break;
 
-                            case 1:
-                                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_numeral_5x3_ime_background);
-                                break;
+                                default:
+                                    break;
+                            }
 
-                            case 2:
-                                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_symbol_5x3_ime_background);
-                                break;
+                            break;
 
-                            default:
-                                break;
-                        }
-                        break;
+                        case 1://雙手鍵盤
 
-                    case 2://右手鍵盤
+                            switch (en_circularIME_view_twoHands.switchKeyboardArray()) {
 
-                        switch (en_circularIME_view_right.switchKeyboardArray()){
+                                case 0:
+                                    if (flag_uppercase)
+                                        findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_normal_5x3_ime_background_uppercase);
+                                    else
+                                        findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_normal_5x3_ime_background_lowercase);
+                                    break;
 
-                            case 0:
-                                if(flag_uppercase)
-                                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_normal_circular_5x3_ime_background_en_uppercase);
-                                else
-                                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_normal_circular_5x3_ime_background_en_lowercase);
-                                break;
+                                case 1:
+                                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_numeral_5x3_ime_background);
+                                    break;
 
-                            case 1:
-                                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_numeral_circular_5x3_ime_background);
-                                break;
+                                case 2:
+                                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_twohands_symbol_5x3_ime_background);
+                                    break;
 
-                            case 2:
-                                findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_symbol_circular_5x3_ime_background);
-                                break;
+                                default:
+                                    break;
+                            }
+                            break;
 
-                            default:
-                                break;
-                        }
-                        break;
+                        case 2://右手鍵盤
+
+                            switch (en_circularIME_view_right.switchKeyboardArray()) {
+
+                                case 0:
+                                    if (flag_uppercase)
+                                        findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_normal_circular_5x3_ime_background_en_uppercase);
+                                    else
+                                        findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_normal_circular_5x3_ime_background_en_lowercase);
+                                    break;
+
+                                case 1:
+                                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_numeral_circular_5x3_ime_background);
+                                    break;
+
+                                case 2:
+                                    findViewById(R.id.keyboard).setBackgroundResource(R.drawable.en_right_symbol_circular_5x3_ime_background);
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                            break;
+                    }
                 }
                 break;
         }

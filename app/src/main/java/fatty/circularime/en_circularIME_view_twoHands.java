@@ -84,20 +84,11 @@ public class en_circularIME_view_twoHands {
     }   /**設定鍵盤座標資訊*/
 
     public String ACTION_DOWN_EVENT(PointF posTouchDown){
-        /**return #1:do nothing(在外圈無用地帶) #2:切換左右雙手輸入法 #3:切換英中日輸入法 other:output String*/
+        /**return #1:do nothing(在外圈無用地帶) #2:切換左右雙手輸入法 #3:切換英中日輸入法 other:output String  #4:廣告*/
 
         if (isHorizontal){ //true : Horizontal ; false : vertical
-            //todo 橫版 待實作
-            if ((screenHeight_view - posTouchDown.y) < 0.2f*view_height_view) { //點擊座標在最下面那橫條，視為無效操作
 
-                return "#1";
-            }
-            else if(false) { //todo 切換中英日輸入法  待決定區域
-                return "#3";
-            } else {
-                return getButtoned(posTouchDown);
-            }
-
+                return getButtoned(posTouchDown, true);
         }else{
 
             if ((screenHeight_view - posTouchDown.y) < 0.2f*view_height_view) { //點擊座標在最下面那橫條，視為無效操作
@@ -105,8 +96,11 @@ public class en_circularIME_view_twoHands {
                 int rowMultiple = (int) ((screenHeight_view - posTouchDown.y) / (0.2f*view_height_view));
                 int columnMultiple = (int) (posTouchDown.x / (view_width_view/90));
 
-                if (rowMultiple == 0 && ( 75 < columnMultiple && columnMultiple <= 90))
+                if (rowMultiple == 0 && ( 70 <= columnMultiple && columnMultiple < 90))
                     return "#2";
+
+                if (rowMultiple == 0 && ( 0 <= columnMultiple && columnMultiple < 15))
+                    return "#4";
 
                 return "#1";
             }
@@ -179,5 +173,46 @@ public class en_circularIME_view_twoHands {
         }
 
     return keyboardArray[rowMultiple-1][whichColumn];
+    }
+
+    private String getButtoned(PointF posTouchDown , boolean horizontal)     /**計算該座標所代表的按鈕*/
+    {
+
+        int whichColumn = 0;
+
+        //找這座標在第幾圈
+        //以1/4的view作為被除數，計算在哪一個row
+        //等於0 第一圈
+        //等於1 第二圈
+        //等於2 第三圈
+        //等於3 第四圈 (最外圈)
+        int rowMultiple = (int) ((screenHeight_view - posTouchDown.y) / (0.25f*view_height_view));
+
+        int columnMultiple = (int) (posTouchDown.x / (view_width_view/90));
+
+        if (rowMultiple == 3) {        //如果在最外圈
+
+            if (columnMultiple < 30)
+                whichColumn = 0;       //最外圈ENTER鍵
+            else if (columnMultiple < 60)
+                whichColumn = 1;       //最外圈空白鍵
+            else
+                whichColumn = 2;       //最外圈DEL鍵
+
+        } else {                       //直的
+
+            if (columnMultiple < 15)
+                whichColumn = 0;       //小於15，whichColumn。(?；,；.)
+            else if (columnMultiple < 35)
+                whichColumn = 1;       //小於35，whichColumn。(PQRS；GHI；↑)
+            else if (columnMultiple <= 55)
+                whichColumn = 2;       //小於55，whichColumn。(TUV；JKL；ABC)
+            else if (columnMultiple <= 75)
+                whichColumn = 3;       //小於75，whichColumn。(WXYZ；MNO；DEF)
+            else
+                whichColumn = 4;       //小於90，whichColumn。(NULL；12#；)
+        }
+
+        return keyboardArray[rowMultiple][whichColumn];
     }
 }

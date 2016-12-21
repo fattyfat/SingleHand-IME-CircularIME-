@@ -22,7 +22,7 @@ public class en_circularIME_view_right {
             {"-4", "32", "-5", "", ""}};
 /*          ↑上方矩陣視覺化↓ 上下顛倒左右相反，不能直接按照[row][col]這樣直接一對一對應
 
-            ｜     ｜空白鍵 ｜DEL  ｜      ｜ENTER｜
+            ｜ENTER｜空白鍵 ｜DEL  ｜      ｜     ｜
             ｜  !  ｜大小寫 ｜ABC  ｜DEF   ｜  .  ｜
             ｜ 12# ｜GHI   ｜JKL  ｜MNO   ｜  ,  ｜
             ｜     ｜PQRS  ｜TUV  ｜WXYZ  ｜  ?  ｜
@@ -37,7 +37,7 @@ final private String[][] EN_right_numeral_keyboardArray = {   //數字鍵盤
         {"-4", "32", "-5", "", ""}};
     /*      ↑上方矩陣視覺化↓ 上下顛倒左右相反，不能直接按照[row][col]這樣直接一對一對應
 
-                ｜     ｜空白鍵｜ DEL｜     ｜ENTER｜
+                ｜ENTER｜空白鍵｜ DEL｜     ｜     ｜
                 ｜  !  ｜  1  ｜  2 ｜  3  ｜  .  ｜
                 ｜ 12# ｜  4  ｜  5 ｜  6  ｜  ,  ｜
                 ｜  0  ｜  7  ｜  8 ｜  9  ｜  ?  ｜
@@ -101,8 +101,11 @@ final private String[][] EN_right_numeral_keyboardArray = {   //數字鍵盤
             int radiusMultiple = (int) ((float) touchRadius / firstCircleRadius);
             int angleMultiple = (int) (touchAngle / amountRow);
 
-            if (radiusMultiple == 4 && (1 <= angleMultiple && angleMultiple >= 83))
+            if (radiusMultiple == 4 && angleMultiple >= 83)
                 return "#2";
+
+            if (radiusMultiple == 5 && (52 <= angleMultiple && angleMultiple <= 58))
+                return "#4";
 
             return "#1";
         }

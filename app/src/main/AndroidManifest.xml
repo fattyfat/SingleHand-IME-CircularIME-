@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <uses-sdk
-        android:minSdkVersion="3"
+        android:minSdkVersion="9"
         android:targetSdkVersion="17" />
 
     <!-- Declares the input method service -->
@@ -31,6 +31,14 @@
         <activity android:name="com.google.android.gms.ads.AdActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:theme="@android:style/Theme.Translucent" />
+
+        <activity android:name=".littleBear"
+            android:theme="@style/AppTheme.CustomTheme"
+            ></activity>
+
+        <activity android:name=".AD_view"
+            android:theme="@style/AppTheme.CustomTheme"
+            ></activity>
 
     </application>
 
