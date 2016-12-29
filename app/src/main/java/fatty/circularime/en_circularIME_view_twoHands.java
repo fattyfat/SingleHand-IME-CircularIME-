@@ -9,6 +9,7 @@ import android.graphics.PointF;
 public class en_circularIME_view_twoHands {
 
     private float screenWidth_view, screenHeight_view, view_width_view, view_height_view;
+    private boolean adEvent = false;
 
     private boolean isHorizontal = true; //true : Horizontal ; false : vertical
     private int swtichKeyboardCounter = 0;
@@ -83,7 +84,7 @@ public class en_circularIME_view_twoHands {
         System.arraycopy(EN_twoHands_keyboardArray, 0, keyboardArray, 0, EN_twoHands_keyboardArray.length);
     }   /**設定鍵盤座標資訊*/
 
-    public String ACTION_DOWN_EVENT(PointF posTouchDown){
+    public String ACTION_DOWN_EVENT(PointF posTouchDown, boolean enableAD ,boolean adEvent){
         /**return #1:do nothing(在外圈無用地帶) #2:切換左右雙手輸入法 #3:切換英中日輸入法 other:output String  #4:廣告*/
 
         if (isHorizontal){ //true : Horizontal ; false : vertical
@@ -96,11 +97,16 @@ public class en_circularIME_view_twoHands {
                 int rowMultiple = (int) ((screenHeight_view - posTouchDown.y) / (0.2f*view_height_view));
                 int columnMultiple = (int) (posTouchDown.x / (view_width_view/90));
 
-                if (rowMultiple == 0 && ( 70 <= columnMultiple && columnMultiple < 90))
+                if (rowMultiple == 0 && ( 75 <= columnMultiple && columnMultiple < 90))
                     return "#2";
 
-                if (rowMultiple == 0 && ( 0 <= columnMultiple && columnMultiple < 15))
+                if (rowMultiple == 0 && ( 0 <= columnMultiple && columnMultiple < 15  && enableAD)){
                     return "#4";
+                }else if (rowMultiple == 0 && ( 54 <= columnMultiple && columnMultiple < 65) && adEvent) {
+                    return "#5";
+                }else if (rowMultiple == 0 && ( 65 <= columnMultiple && columnMultiple < 75) && adEvent) {
+                    return "#4";
+                }
 
                 return "#1";
             }

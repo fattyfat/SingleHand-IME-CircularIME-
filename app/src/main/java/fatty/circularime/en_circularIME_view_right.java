@@ -91,22 +91,25 @@ final private String[][] EN_right_numeral_keyboardArray = {   //數字鍵盤
         System.arraycopy(EN_right_keyboardArray, 0, keyboardArray, 0, EN_right_keyboardArray.length);
     }   /**設定鍵盤座標資訊*/
 
-    public String ACTION_DOWN_EVENT(PointF posTouchDown){
+    public String ACTION_DOWN_EVENT(PointF posTouchDown, boolean enableAD ,boolean adEvent){
     /**return #1:do nothing(在外圈無用地帶) #2:切換左右雙手輸入法 #3:切換英中日輸入法 other:output String*/
         double touchRadius = getRadius(posTouchDown);
         double touchAngle = getAngle(posTouchDown);
 
         if (touchRadius > fifthCircleRadius ) { //點擊座標半徑超過圖形，視為無效操作
 
-            int radiusMultiple = (int) ((float) touchRadius / firstCircleRadius);
+            int radiusMultiple = (int) ((float) touchRadius / (fifthCircleRadius/600));
             int angleMultiple = (int) (touchAngle / amountRow);
 
-            if (radiusMultiple == 4 && angleMultiple >= 83)
+            if ((700 <= radiusMultiple && radiusMultiple <= 800) && angleMultiple >= 83) {
                 return "#2";
-
-            if (radiusMultiple == 5 && (52 <= angleMultiple && angleMultiple <= 58))
+            }else if (870 <= radiusMultiple && (51 <= angleMultiple && angleMultiple <= 58  && enableAD)){
                 return "#4";
-
+            }else if ((760 <= radiusMultiple && radiusMultiple <= 850) && (61 <= angleMultiple && angleMultiple <= 64) && adEvent) {
+                return "#5";
+            }else if ((615 <= radiusMultiple && radiusMultiple <= 750) && (54 <= angleMultiple && angleMultiple <= 60) && adEvent) {
+                return "#4";
+            }
             return "#1";
         }
         else if(touchRadius < firstCircleRadius) {
@@ -169,21 +172,21 @@ final private String[][] EN_right_numeral_keyboardArray = {   //數字鍵盤
         int whichDirection = 0;
 
         //找這座標在第幾圈
-        //以圓的1/10作為除數，計算半徑有十分之一半徑的幾倍來計算在哪一圈
-        //小於3 第一圈(最內圈) 中英日切換輸入法，但由於在input_onTouchUp內已經篩選過，所以這裡不會出現
-        //3<= X <5 第一圈  (最內圈)
-        //>=5 X <7 第二圈
-        //>=7 X <9 第三圈
-        //>=9 X <10 第四圈 (最外圈)
-        int radiusMultiple = (int) ((float) Radius / (fifthCircleRadius / 10));
+        //以圓的1/600作為除數，計算半徑有六百分之一半徑的幾倍來計算在哪一圈
+        //小於180 第一圈(最內圈) 中英日切換輸入法，但由於在input_onTouchUp內已經篩選過，所以這裡不會出現
+        //180<= X <300 第一圈  (最內圈)
+        //300<= X <420 第二圈
+        //420>= X <540 第三圈
+        //540>= X <600 第四圈 (最外圈)
+        int radiusMultiple = (int) ((float) Radius / (fifthCircleRadius / 600));
 
-        if (radiusMultiple >= 9)
+        if (radiusMultiple >= 540)
             whichCycle = 3;
-        else if (radiusMultiple >= 7)
+        else if (radiusMultiple >= 420)
             whichCycle = 2;
-        else if (radiusMultiple >= 5)
+        else if (radiusMultiple >= 300)
             whichCycle = 1;
-        else if (radiusMultiple >= 3)
+        else if (radiusMultiple >= 180)
             whichCycle = 0;
 
         int angleMultiple = (int) (Angle / amountRow);              //找這角度在哪一個column

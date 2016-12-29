@@ -24,11 +24,10 @@ public class AD_view extends Activity {
         int width = dm.widthPixels;
         int height = dm.heightPixels;
 
-        getWindow().setLayout((int)(width*.95),(int)(height*.65));
+        getWindow().setLayout((int)(width*.84),(int)(height*.42));
 
         AdView mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
     }
-
 }

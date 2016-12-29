@@ -2,4 +2,8 @@
     <string name="app_name">CircularIME</string>
 
     <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="adContentText">We\'ve picked an ad for you, and you might like it.</string>
+    <string name="adContentOptionAgree">YES</string>
+    <string name="adContentOptionCancel">NO</string>
+
 </resources>
