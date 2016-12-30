@@ -5,9 +5,15 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Handler;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -18,25 +24,6 @@ import java.util.Calendar;
 /**
  * Created by Fatty on 2016-11-29.
  */
-//============最急件→製作中
-//todo{19~24}   調整介面+素材
-//============待完成
-//todo 廣告業面多出一個[X]
-//todo 改變icon
-
-//todo 加入中英日切換的按鈕
-//todo 加入中文輸入法
-//todo 加入日文輸入法
-//============觀察中
-//todo [考慮]自動化測試
-//todo [考慮]加入安裝新手設定畫面
-//todo [考慮]增加全選→(再按一次)複製→(再案一次)貼上 的按鈕?
-//todo [考慮]收起鍵盤的按鈕
-//todo [考慮]加聲音或震動  (查SEE程式的playclick)
-//todo [考慮]加入輸入法頁面的一些選項(給我們評分 震動勾選 聲音勾選 語言 一鍵備份等)
-//todo [考慮]像扇子一樣的收放動作
-
-//todo [追蹤]有長按事件thread 停不下來的問題 (觸發條件不明)
 
 public class circularIME_view extends View {
 
@@ -66,9 +53,12 @@ public class circularIME_view extends View {
     private ClickPressedThread mPrevClickThread;    //點擊等待線程；進入點擊線程
 
     private Context mContext;
+    private boolean adFlag = false;
+    private boolean enableAD = false;
+    private String SceneNumber = "";
 
     private Bitmap adClickIcon, switchIcon;
-    private Paint paint;
+    private TextPaint paint;
 
     public circularIME_view(Context context, AttributeSet attrs) {
 
@@ -76,10 +66,17 @@ public class circularIME_view extends View {
         mContext = context;
 
         //创建一个画笔
-        paint = new Paint();
+        paint = new TextPaint();
+
+        String familyName = "Arimo";
+        Typeface font = Typeface.create(familyName,Typeface.NORMAL);
+        paint.setColor(Color.WHITE);
+        paint.setTypeface(font);
+        paint.setTextSize(40);
+
         //获得图片资源
-        switchIcon = BitmapFactory.decodeResource(getResources(), R.drawable.gu_bear);
-        adClickIcon = BitmapFactory.decodeResource(getResources(), R.drawable.gu_so_cute);
+        switchIcon = BitmapFactory.decodeResource(getResources(), R.drawable.switch_pic);
+        adClickIcon = BitmapFactory.decodeResource(getResources(), R.drawable.dog_and_scroll);
     }
 
     public void setIME(fatty.circularime.circularIME _circularIME) {circularIME = _circularIME; }
@@ -125,39 +122,49 @@ public class circularIME_view extends View {
                 String returnString = "";
                 returnString = IMEclassSwitch();
 
-                switch(returnString) {
-                    case "#1":     //do nothing(在外圈無用地帶)
-                        break;
+                if(returnString.length() != 0) {
+                    switch (returnString.substring(0,2)) {
+                        case "#1":     //do nothing(在外圈無用地帶)
+                            break;
 
-                    case "#2":     //切換左右雙手輸入法
-                        IMEkeyboardBackgroundSwitch("switchToOtherIME");
-                        break;
+                        case "#2":     //切換左右雙手輸入法
+                            IMEkeyboardBackgroundSwitch("switchToOtherIME");
+                            break;
 
-                    case "#3":     //切換英中日輸入法
-                        // TODO: 之後要加入中英日切換的地方
-                        break;
+                        case "#3":     //切換英中日輸入法
+                            // TODO: 之後要加入中英日切換的地方
+                            break;
 
-                    case "#4":     //切換廣告
-                        Intent intent = new Intent();
-                        intent.setClass(getContext(), littleBear.class);    //设置成要启动的Activity
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                        case "#4":     //廣告對話事件或廣告回答NO
+                            SceneNumber = returnString;
+                            invalidate();   //重新進入ondraw()
+                            break;
 
-                        mContext.startActivity(intent);
+                        case "#5":     //廣告回答YES
 
-                        break;
+                            adFlag = true;
 
-                    default:        //output string
-                        // TODO 如果要加聲音或震動  查SEE程式的playclick
-                        outputString = returnString;
+                            Intent intent = new Intent();
+                            intent.setClass(getContext(), AD_view.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 
-                        if (!outputString.equals("")) printOutputString(outputString);
-                        lastTimeOutputString = outputString;
+                            mContext.startActivity(intent);
 
-                        //加入長按事件thread
-                        mLongPressedThread = new LongPressedThread();
-                        mBaseHandler.postDelayed(mLongPressedThread, longPressTime);
-                        break;
+                            break;
+
+                        default:        //output string
+                            // TODO 如果要加聲音或震動  查SEE程式的playclick
+                            outputString = returnString;
+
+                            if (!outputString.equals("")) printOutputString(outputString);
+                            lastTimeOutputString = outputString;
+
+                            //加入長按事件thread
+                            mLongPressedThread = new LongPressedThread();
+                            mBaseHandler.postDelayed(mLongPressedThread, longPressTime);
+                            break;
+                    }
                 }
                 break;
 
@@ -185,24 +192,177 @@ public class circularIME_view extends View {
         return true;
     }   /**偵測碰觸事件(action down & action up)*/
 
-    protected void onDraw ( Canvas canvas ) {
+    protected void onDraw (Canvas canvas) {
 
         super.onDraw(canvas);
 
         if (!isHorizontal) {    //橫版的話不印廣告與切換鍵盤的符號
+            adFlag = !adFlag;
+            Calendar calendar = Calendar.getInstance();
+            int day = calendar.get(Calendar.DAY_OF_MONTH);
+            int hour = calendar.get(Calendar.HOUR_OF_DAY);
 
             switch (IMEclassNumber % 3) {
                 case 0:     //變更為左手鍵盤廣告圖案位置
-                    canvas.drawBitmap(switchIcon, screenWidth - 200, screenHeight - 150, paint);
-                    canvas.drawBitmap(adClickIcon, screenWidth - 150, 0, paint);
+
+                    //if ((hour == day%12) || (hour == (day%12+12))) {
+
+                        canvas.scale(0.2f, 0.2f);
+                        canvas.drawBitmap(adClickIcon, screenWidth * 4.3f, screenHeight * 0.2f, paint);
+                        canvas.scale(5, 5);
+                        enableAD = true;
+
+                        if (SceneNumber.equals("#4")) { //若為#4(廣告)，則印出YES NO對話字串
+
+                            Rect rect;
+                            String text;
+                            StaticLayout layout;
+
+                            if(adFlag) {
+                                rect = new Rect((int)(screenWidth*0.6f), (int)(screenHeight*0.17f), screenWidth, (int)(screenHeight*0.3f));    //印出文字訊息
+                                text = this.getResources().getString(R.string.adContentText);
+                                layout = new StaticLayout(text, paint, rect.width(), Layout.Alignment.ALIGN_NORMAL, 1.0F, 0.0F, true);
+                                canvas.save();
+                                paint.setTextAlign(Paint.Align.LEFT);
+                                canvas.translate(rect.left, rect.top);
+                                layout.draw(canvas);
+                                canvas.restore();
+
+                                rect = new Rect((int)(screenWidth*0.65f), (int)(screenHeight*0.35f), (int)(screenWidth*0.8f), (int)(screenHeight*0.45f));    //印出YES圖案
+                                text = this.getResources().getString(R.string.adContentOptionAgree);
+                                layout = new StaticLayout(text, paint, rect.width(), Layout.Alignment.ALIGN_NORMAL, 1.0F, 0.0F, true);
+                                canvas.save();
+                                paint.setTextAlign(Paint.Align.LEFT);
+                                canvas.translate(rect.left, rect.top);
+                                layout.draw(canvas);
+                                canvas.restore();
+
+                                rect = new Rect((int)(screenWidth*0.85f), (int)(screenHeight*0.35f), screenWidth, (int)(screenHeight*0.45f));    //印出NO圖案
+                                text = this.getResources().getString(R.string.adContentOptionCancel);
+                                layout = new StaticLayout(text, paint, rect.width(), Layout.Alignment.ALIGN_NORMAL, 1.0F, 0.0F, true);
+                                canvas.save();
+                                paint.setTextAlign(Paint.Align.CENTER);
+                                canvas.translate(rect.left, rect.top);
+                                layout.draw(canvas);
+                                canvas.restore();
+                            }
+                        }
+/*                    }else{
+                        enableAD = false;
+                    }*/
+
+                    canvas.scale(0.3f, 0.3f);
+                    canvas.drawBitmap(switchIcon, screenWidth*2.92f, screenHeight*2.92f, paint);
+
+                    SceneNumber = "";
                     break;
                 case 1:     //變更為雙手鍵盤廣告圖案位置
-                    canvas.drawBitmap(switchIcon, screenWidth - 200, screenHeight - 150, paint);
-                    canvas.drawBitmap(adClickIcon, 0, screenHeight - 150, paint);
+
+                    //if ((hour == day%12) || (hour == (day%12+12))) {
+
+                        canvas.scale(0.2f, 0.2f);
+                        canvas.drawBitmap(adClickIcon, screenWidth*0.1f, screenHeight*4.1f, paint);
+                        canvas.scale(5, 5);
+                        enableAD = true;
+
+                        if (SceneNumber.equals("#4")) { //若為#4(廣告)，則印出YES NO對話字串
+
+                            Rect rect;
+                            String text;
+                            StaticLayout layout;
+
+                            if(adFlag) {
+
+                                rect = new Rect((int)(screenWidth*0.2f), (int)(screenHeight*0.81f), (int)(screenWidth*0.6f), (int)(screenHeight));    //印出文字訊息
+                                text = this.getResources().getString(R.string.adContentText);
+                                layout = new StaticLayout(text, paint, rect.width(), Layout.Alignment.ALIGN_NORMAL, 1.0F, 0.0F, true);
+                                canvas.save();
+                                paint.setTextAlign(Paint.Align.LEFT);
+                                canvas.translate(rect.left, rect.top);
+                                layout.draw(canvas);
+                                canvas.restore();
+
+                                rect = new Rect((int)(screenWidth*0.6f), (int)(screenHeight*0.9f), (int)(screenWidth*0.75f), (int)(screenHeight));    //印出YES圖案
+                                text = this.getResources().getString(R.string.adContentOptionAgree);
+                                layout = new StaticLayout(text, paint, rect.width(), Layout.Alignment.ALIGN_NORMAL, 1.0F, 0.0F, true);
+                                canvas.save();
+                                paint.setTextAlign(Paint.Align.LEFT);
+                                canvas.translate(rect.left, rect.top);
+                                layout.draw(canvas);
+                                canvas.restore();
+
+                                rect = new Rect((int)(screenWidth*0.75f), (int)(screenHeight*0.9f), (int)(screenWidth*0.9f), (int)(screenHeight));    //印出NO圖案
+                                text = this.getResources().getString(R.string.adContentOptionCancel);
+                                layout = new StaticLayout(text, paint, rect.width(), Layout.Alignment.ALIGN_NORMAL, 1.0F, 0.0F, true);
+                                canvas.save();
+                                paint.setTextAlign(Paint.Align.CENTER);
+                                canvas.translate(rect.left, rect.top);
+                                layout.draw(canvas);
+                                canvas.restore();
+                            }
+                        }
+/*                    }else{
+                            enableAD = false;
+                    }*/
+
+                    canvas.scale(0.3f, 0.3f);
+                    canvas.drawBitmap(switchIcon, screenWidth*2.92f, screenHeight*2.92f, paint);
+
+                    SceneNumber = "";
                     break;
                 case 2:     //變更為右手鍵盤廣告圖案位置
-                    canvas.drawBitmap(switchIcon, 0, screenHeight - 150, paint);
-                    canvas.drawBitmap(adClickIcon, 0, 0, paint);
+
+                    //if ((hour == day%12) || (hour == (day%12+12))) {
+
+                        canvas.scale(0.2f, 0.2f);
+                        canvas.drawBitmap(adClickIcon, screenWidth*0.1f, screenHeight*0.2f, paint);
+                        canvas.scale(5, 5);
+                        enableAD = true;
+
+                        if (SceneNumber.equals("#4")) { //若為#4(廣告)，則印出YES NO對話字串
+
+                            Rect rect;
+                            String text;
+                            StaticLayout layout;
+
+                            if(adFlag) {
+
+                                rect = new Rect((int)(screenWidth*0.02f), (int)(screenHeight*0.17f), (int)(screenWidth*0.4f), (int)(screenHeight*0.3f));    //印出文字訊息
+                                text = this.getResources().getString(R.string.adContentText);
+                                layout = new StaticLayout(text, paint, rect.width(), Layout.Alignment.ALIGN_NORMAL, 1.0F, 0.0F, true);
+                                canvas.save();
+                                paint.setTextAlign(Paint.Align.LEFT);
+                                canvas.translate(rect.left, rect.top);
+                                layout.draw(canvas);
+                                canvas.restore();
+
+                                rect = new Rect((int)(screenWidth*0.05f), (int)(screenHeight*0.35f), (int)(screenWidth*0.2f), (int)(screenHeight*0.45f));    //印出YES圖案
+                                text = this.getResources().getString(R.string.adContentOptionAgree);
+                                layout = new StaticLayout(text, paint, rect.width(), Layout.Alignment.ALIGN_NORMAL, 1.0F, 0.0F, true);
+                                canvas.save();
+                                paint.setTextAlign(Paint.Align.LEFT);
+                                canvas.translate(rect.left, rect.top);
+                                layout.draw(canvas);
+                                canvas.restore();
+
+                                rect = new Rect((int)(screenWidth*0.25f), (int)(screenHeight*0.35f), (int)(screenWidth*0.4f), (int)(screenHeight*0.45f));    //印出NO圖案
+                                text = this.getResources().getString(R.string.adContentOptionCancel);
+                                layout = new StaticLayout(text, paint, rect.width(), Layout.Alignment.ALIGN_NORMAL, 1.0F, 0.0F, true);
+                                canvas.save();
+                                paint.setTextAlign(Paint.Align.CENTER);
+                                canvas.translate(rect.left, rect.top);
+                                layout.draw(canvas);
+                                canvas.restore();
+                            }
+                        }
+/*                    }else{
+                        enableAD = false;
+                    }*/
+
+                    canvas.scale(0.3f, 0.3f);
+                    canvas.drawBitmap(switchIcon, screenWidth*0.1f, screenHeight*2.92f, paint);
+
+                    SceneNumber = "";
                     break;
                 default:
                     break;
@@ -275,28 +435,30 @@ public class circularIME_view extends View {
     {
         switch(IMEclassNumber % 3) {
             case 0:     //左手鍵盤回傳點擊結果
-                return en_circularIME_view_left.ACTION_DOWN_EVENT(posTouchDown);
+                return en_circularIME_view_left.ACTION_DOWN_EVENT(posTouchDown, enableAD, adFlag);
 
             case 1:     //兩手鍵盤回傳點擊結果
-                return en_circularIME_view_twoHands.ACTION_DOWN_EVENT(posTouchDown);
+                return en_circularIME_view_twoHands.ACTION_DOWN_EVENT(posTouchDown, enableAD, adFlag);
 
             case 2:     //右手鍵盤回傳點擊結果
-                return en_circularIME_view_right.ACTION_DOWN_EVENT(posTouchDown);
+                return en_circularIME_view_right.ACTION_DOWN_EVENT(posTouchDown, enableAD, adFlag);
 
             default:
                 return "";
         }
+
     }
 
     private void IMEkeyboardBackgroundSwitch(String switchEvent)    /**切換鍵盤畫面*/
     {
 
+        adFlag = true;
         switch(switchEvent) {
 
             case "switchToOtherIME":  /**左手輸入法←→兩手輸入法←→右手輸入法 背景圖更換*/
 
                 IMEclassNumber++;
-
+                SceneNumber = "";
                 switch (IMEclassNumber % 3) {
                     case 0:     //變更為左手鍵盤的背景及設定
 
