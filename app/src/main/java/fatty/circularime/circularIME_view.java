@@ -72,7 +72,6 @@ public class circularIME_view extends View {
         Typeface font = Typeface.create(familyName,Typeface.NORMAL);
         paint.setColor(Color.WHITE);
         paint.setTypeface(font);
-        paint.setTextSize(40);
 
         //获得图片资源
         switchIcon = BitmapFactory.decodeResource(getResources(), R.drawable.switch_pic);
@@ -103,6 +102,25 @@ public class circularIME_view extends View {
             isHorizontal = false;
             view_height = Math.round(0.75f * view_width);                 // 保持長寬比 4：3。原始像素800x600
             en_circularIME_view_left.setCircularRadius_enLeft(screenWidth,screenHeight,view_width,view_height);
+
+            switch((int)view_width/300) {
+
+                case 0:
+                    paint.setTextSize(12);
+                    break;
+                case 1:
+                    paint.setTextSize(18);
+                    break;
+                case 2:
+                    paint.setTextSize(29);
+                    break;
+                case 3:
+                    paint.setTextSize(40);
+                    break;
+                default:
+                    paint.setTextSize(50);
+                    break;
+            }
         }
         // Set the new size
         setMeasuredDimension(view_width, view_height);
@@ -205,7 +223,7 @@ public class circularIME_view extends View {
             switch (IMEclassNumber % 3) {
                 case 0:     //變更為左手鍵盤廣告圖案位置
 
-                    //if ((hour == day%12) || (hour == (day%12+12))) {
+                    if ((hour == day%12) || (hour == (day%12+12))) {
 
                         canvas.scale(0.2f, 0.2f);
                         canvas.drawBitmap(adClickIcon, screenWidth * 4.3f, screenHeight * 0.2f, paint);
@@ -247,9 +265,9 @@ public class circularIME_view extends View {
                                 canvas.restore();
                             }
                         }
-/*                    }else{
+                    }else{
                         enableAD = false;
-                    }*/
+                    }
 
                     canvas.scale(0.3f, 0.3f);
                     canvas.drawBitmap(switchIcon, screenWidth*2.92f, screenHeight*2.92f, paint);
@@ -258,7 +276,7 @@ public class circularIME_view extends View {
                     break;
                 case 1:     //變更為雙手鍵盤廣告圖案位置
 
-                    //if ((hour == day%12) || (hour == (day%12+12))) {
+                    if ((hour == day%12) || (hour == (day%12+12))) {
 
                         canvas.scale(0.2f, 0.2f);
                         canvas.drawBitmap(adClickIcon, screenWidth*0.1f, screenHeight*4.1f, paint);
@@ -301,9 +319,9 @@ public class circularIME_view extends View {
                                 canvas.restore();
                             }
                         }
-/*                    }else{
+                    }else{
                             enableAD = false;
-                    }*/
+                    }
 
                     canvas.scale(0.3f, 0.3f);
                     canvas.drawBitmap(switchIcon, screenWidth*2.92f, screenHeight*2.92f, paint);
@@ -312,7 +330,7 @@ public class circularIME_view extends View {
                     break;
                 case 2:     //變更為右手鍵盤廣告圖案位置
 
-                    //if ((hour == day%12) || (hour == (day%12+12))) {
+                    if ((hour == day%12) || (hour == (day%12+12))) {
 
                         canvas.scale(0.2f, 0.2f);
                         canvas.drawBitmap(adClickIcon, screenWidth*0.1f, screenHeight*0.2f, paint);
@@ -355,9 +373,9 @@ public class circularIME_view extends View {
                                 canvas.restore();
                             }
                         }
-/*                    }else{
+                    }else{
                         enableAD = false;
-                    }*/
+                    }
 
                     canvas.scale(0.3f, 0.3f);
                     canvas.drawBitmap(switchIcon, screenWidth*0.1f, screenHeight*2.92f, paint);

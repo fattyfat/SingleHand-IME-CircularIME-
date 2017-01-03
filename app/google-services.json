@@ -1,0 +1,50 @@
+{
+  "project_info": {
+    "project_number": "468373520659",
+    "firebase_url": "https://circularime.firebaseio.com",
+    "project_id": "circularime",
+    "storage_bucket": "circularime.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:468373520659:android:29ba4dce9181edcf",
+        "android_client_info": {
+          "package_name": "fatty.circularime"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "468373520659-smmmbknhnp5q741gmokbptcmt5oe212n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "fatty.circularime",
+            "certificate_hash": "A61F070255A62EACC6D035656177FBA77478A17F"
+          }
+        },
+        {
+          "client_id": "468373520659-em03kqtae4n2q8cesr4iru9bfjg169u5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYn-wl_PytsbFJfpiUCTt_pqjIV8kn5UA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
