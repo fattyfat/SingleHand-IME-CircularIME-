@@ -223,7 +223,7 @@ public class circularIME_view extends View {
             switch (IMEclassNumber % 3) {
                 case 0:     //變更為左手鍵盤廣告圖案位置
 
-                    if ((hour == day%12) || (hour == (day%12+12))) {
+                    //if ((hour == day%12) || (hour == (day%12+12))) {
 
                         canvas.scale(0.2f, 0.2f);
                         canvas.drawBitmap(adClickIcon, screenWidth * 4.3f, screenHeight * 0.2f, paint);
@@ -265,9 +265,9 @@ public class circularIME_view extends View {
                                 canvas.restore();
                             }
                         }
-                    }else{
-                        enableAD = false;
-                    }
+                    //}else{
+                        //enableAD = false;
+                    //}
 
                     canvas.scale(0.3f, 0.3f);
                     canvas.drawBitmap(switchIcon, screenWidth*2.92f, screenHeight*2.92f, paint);
