@@ -5,7 +5,7 @@
 ![Example1](pic1.png)
 
 ↓ 右手單手模是
-![Example1](pic2.jpeg)
+![Example1](pic2.jpg)
 
 ↓  雙手模式
-![Example1](pic3.jpeg)
+![Example1](pic3.jpg)
