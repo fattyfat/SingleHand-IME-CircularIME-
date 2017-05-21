@@ -9,3 +9,6 @@
 
 → 雙手模式
 ![Example1](pic3.jpg)
+
+APP download
+https://play.google.com/store/apps/details?id=fatty.circularime
