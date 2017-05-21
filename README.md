@@ -4,10 +4,10 @@
 ↓ 左手單手模式<br>
 ![Example1](pic1.png)
 
-↓ 右手單手模式<br>
+↓ 雙手模式<br>
 ![Example1](pic2.jpg)
 
-↓ 雙手模式<br>
+↓ 右手單手模式<br>
 ![Example1](pic3.jpg)
 
 APP download
