@@ -9,6 +9,6 @@
 
 ↓ 右手單手模式<br>
 ![Example1](pic3.jpg)
-
+<br>
 APP download
 https://play.google.com/store/apps/details?id=fatty.circularime
